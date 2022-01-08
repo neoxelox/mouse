@@ -23,6 +23,10 @@ As a bonus, there is also the firmware and desktop software in order to see what
 
 ![PCB Bottom](./docs/pcb-bottom.jpeg "PCB Bottom")
 
+### Mouse Camera
+
+![Mouse Camera](./docs/mouse-camera.png "Mouse Camera")
+
 # Credits
 
 - [**`Alex Rodriguez`**](https://github.com/neoxelox)

@@ -12,7 +12,7 @@ void setup()
     Serial.begin(9600);
     Mouse.begin();
 
-    logger::level = logger::DEBUG;
+    logger::level = logger::INFO;
     logger::setup();
 
     sensor::setup();

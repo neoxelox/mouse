@@ -9,19 +9,22 @@
 
 namespace button
 {
-#define BUTTON_DEBOUNCE_CLICK 150 // milliseconds
-#define BUTTON_DEBOUNCE_HOLD 75   // milliseconds
+#define BUTTON_DEBOUNCE 50 // milliseconds
 
-    volatile byte LEFT_FLAG_PRESSED = false;
-    volatile byte LEFT_FLAG_RELEASED = false;
-    volatile byte RIGHT_FLAG_PRESSED = false;
-    volatile byte RIGHT_FLAG_RELEASED = false;
-    volatile byte MIDDLE_FLAG_PRESSED = false;
-    volatile byte MIDDLE_FLAG_RELEASED = false;
-    volatile byte SIDE_LEFT_FLAG_PRESSED = false;
-    volatile byte SIDE_LEFT_FLAG_RELEASED = false;
-    volatile byte SIDE_RIGHT_FLAG_PRESSED = false;
-    volatile byte SIDE_RIGHT_FLAG_RELEASED = false;
+#define PRESSED true
+#define RELEASED false
+
+    volatile byte LEFT_FLAG = RELEASED;
+    volatile byte RIGHT_FLAG = RELEASED;
+    volatile byte MIDDLE_FLAG = RELEASED;
+    volatile byte SIDE_LEFT_FLAG = RELEASED;
+    volatile byte SIDE_RIGHT_FLAG = RELEASED;
+
+    byte LAST_LEFT_FLAG = LEFT_FLAG;
+    byte LAST_RIGHT_FLAG = RIGHT_FLAG;
+    byte LAST_MIDDLE_FLAG = MIDDLE_FLAG;
+    byte LAST_SIDE_LEFT_FLAG = SIDE_LEFT_FLAG;
+    byte LAST_SIDE_RIGHT_FLAG = SIDE_RIGHT_FLAG;
 
     unsigned long leftLastRising = 0;
     unsigned long leftLastFalling = 0;
@@ -38,17 +41,17 @@ namespace button
     {
         if (digitalRead(pin::BUTTON_LEFT) == HIGH)
         {
-            if ((millis() - leftLastRising) > BUTTON_DEBOUNCE_CLICK)
+            if (LEFT_FLAG != PRESSED && ((millis() - leftLastFalling) > BUTTON_DEBOUNCE))
             {
-                LEFT_FLAG_PRESSED = true;
+                LEFT_FLAG = PRESSED;
                 leftLastRising = millis();
             }
         }
         else
         {
-            if (((millis() - leftLastRising) > BUTTON_DEBOUNCE_HOLD) && ((millis() - leftLastFalling) > BUTTON_DEBOUNCE_CLICK))
+            if (LEFT_FLAG != RELEASED && ((millis() - leftLastRising) > BUTTON_DEBOUNCE))
             {
-                LEFT_FLAG_RELEASED = true;
+                LEFT_FLAG = RELEASED;
                 leftLastFalling = millis();
             }
         }
@@ -58,17 +61,17 @@ namespace button
     {
         if (digitalRead(pin::BUTTON_RIGHT) == HIGH)
         {
-            if ((millis() - rightLastRising) > BUTTON_DEBOUNCE_CLICK)
+            if (RIGHT_FLAG != PRESSED && ((millis() - rightLastFalling) > BUTTON_DEBOUNCE))
             {
-                RIGHT_FLAG_PRESSED = true;
+                RIGHT_FLAG = PRESSED;
                 rightLastRising = millis();
             }
         }
         else
         {
-            if (((millis() - rightLastRising) > BUTTON_DEBOUNCE_HOLD) && ((millis() - rightLastFalling) > BUTTON_DEBOUNCE_CLICK))
+            if (RIGHT_FLAG != RELEASED && ((millis() - rightLastRising) > BUTTON_DEBOUNCE))
             {
-                RIGHT_FLAG_RELEASED = true;
+                RIGHT_FLAG = RELEASED;
                 rightLastFalling = millis();
             }
         }
@@ -78,17 +81,17 @@ namespace button
     {
         if (digitalRead(pin::BUTTON_MIDDLE) == HIGH)
         {
-            if ((millis() - middleLastRising) > BUTTON_DEBOUNCE_CLICK)
+            if (MIDDLE_FLAG != PRESSED && ((millis() - middleLastFalling) > BUTTON_DEBOUNCE))
             {
-                MIDDLE_FLAG_PRESSED = true;
+                MIDDLE_FLAG = PRESSED;
                 middleLastRising = millis();
             }
         }
         else
         {
-            if (((millis() - middleLastRising) > BUTTON_DEBOUNCE_HOLD) && ((millis() - middleLastFalling) > BUTTON_DEBOUNCE_CLICK))
+            if (MIDDLE_FLAG != RELEASED && ((millis() - middleLastRising) > BUTTON_DEBOUNCE))
             {
-                MIDDLE_FLAG_RELEASED = true;
+                MIDDLE_FLAG = RELEASED;
                 middleLastFalling = millis();
             }
         }
@@ -98,17 +101,17 @@ namespace button
     {
         if (digitalRead(pin::BUTTON_SIDE_LEFT) == HIGH)
         {
-            if ((millis() - sideLeftLastRising) > BUTTON_DEBOUNCE_CLICK)
+            if (SIDE_LEFT_FLAG != PRESSED && ((millis() - sideLeftLastFalling) > BUTTON_DEBOUNCE))
             {
-                SIDE_LEFT_FLAG_PRESSED = true;
+                SIDE_LEFT_FLAG = PRESSED;
                 sideLeftLastRising = millis();
             }
         }
         else
         {
-            if (((millis() - sideLeftLastRising) > BUTTON_DEBOUNCE_HOLD) && ((millis() - sideLeftLastFalling) > BUTTON_DEBOUNCE_CLICK))
+            if (SIDE_LEFT_FLAG != RELEASED && ((millis() - sideLeftLastRising) > BUTTON_DEBOUNCE))
             {
-                SIDE_LEFT_FLAG_RELEASED = true;
+                SIDE_LEFT_FLAG = RELEASED;
                 sideLeftLastFalling = millis();
             }
         }
@@ -118,17 +121,17 @@ namespace button
     {
         if (digitalRead(pin::BUTTON_SIDE_RIGHT) == HIGH)
         {
-            if ((millis() - sideRightLastRising) > BUTTON_DEBOUNCE_CLICK)
+            if (SIDE_RIGHT_FLAG != PRESSED && ((millis() - sideRightLastFalling) > BUTTON_DEBOUNCE))
             {
-                SIDE_RIGHT_FLAG_PRESSED = true;
+                SIDE_RIGHT_FLAG = PRESSED;
                 sideRightLastRising = millis();
             }
         }
         else
         {
-            if (((millis() - sideRightLastRising) > BUTTON_DEBOUNCE_HOLD) && ((millis() - sideRightLastFalling) > BUTTON_DEBOUNCE_CLICK))
+            if (SIDE_RIGHT_FLAG != RELEASED && ((millis() - sideRightLastRising) > BUTTON_DEBOUNCE))
             {
-                SIDE_RIGHT_FLAG_RELEASED = true;
+                SIDE_RIGHT_FLAG = RELEASED;
                 sideRightLastFalling = millis();
             }
         }
@@ -151,86 +154,96 @@ namespace button
 
     void loop()
     {
-        if (LEFT_FLAG_PRESSED)
+        if (LEFT_FLAG != LAST_LEFT_FLAG)
         {
-            LEFT_FLAG_PRESSED = false;
-            logger::debug("Left button pressed");
+            if (LEFT_FLAG == PRESSED)
+            {
+                logger::debug("Left button pressed");
 
-            if (!Mouse.isPressed(MOUSE_LEFT))
-                Mouse.press(MOUSE_LEFT);
+                if (!Mouse.isPressed(MOUSE_LEFT))
+                    Mouse.press(MOUSE_LEFT);
+            }
+            else if (LEFT_FLAG == RELEASED)
+            {
+                logger::debug("Left button released");
+
+                if (Mouse.isPressed(MOUSE_LEFT))
+                    Mouse.release(MOUSE_LEFT);
+            }
+
+            LAST_LEFT_FLAG = LEFT_FLAG;
         }
 
-        if (LEFT_FLAG_RELEASED)
+        if (RIGHT_FLAG != LAST_RIGHT_FLAG)
         {
-            LEFT_FLAG_RELEASED = false;
-            logger::debug("Left button released");
+            if (RIGHT_FLAG == PRESSED)
+            {
+                logger::debug("Right button pressed");
 
-            if (Mouse.isPressed(MOUSE_LEFT))
-                Mouse.release(MOUSE_LEFT);
+                if (!Mouse.isPressed(MOUSE_RIGHT))
+                    Mouse.press(MOUSE_RIGHT);
+            }
+            else if (RIGHT_FLAG == RELEASED)
+            {
+                logger::debug("Right button released");
+
+                if (Mouse.isPressed(MOUSE_RIGHT))
+                    Mouse.release(MOUSE_RIGHT);
+            }
+
+            LAST_RIGHT_FLAG = RIGHT_FLAG;
         }
 
-        if (RIGHT_FLAG_PRESSED)
+        if (MIDDLE_FLAG != LAST_MIDDLE_FLAG)
         {
-            RIGHT_FLAG_PRESSED = false;
-            logger::debug("Right button pressed");
+            if (MIDDLE_FLAG == PRESSED)
+            {
+                logger::debug("Middle button pressed");
 
-            if (!Mouse.isPressed(MOUSE_RIGHT))
-                Mouse.press(MOUSE_RIGHT);
+                if (!Mouse.isPressed(MOUSE_MIDDLE))
+                    Mouse.press(MOUSE_MIDDLE);
+            }
+            else if (MIDDLE_FLAG == RELEASED)
+            {
+                logger::debug("Middle button released");
+
+                if (Mouse.isPressed(MOUSE_MIDDLE))
+                    Mouse.release(MOUSE_MIDDLE);
+            }
+
+            LAST_MIDDLE_FLAG = MIDDLE_FLAG;
         }
 
-        if (RIGHT_FLAG_RELEASED)
+        if (SIDE_LEFT_FLAG != LAST_SIDE_LEFT_FLAG)
         {
-            RIGHT_FLAG_RELEASED = false;
-            logger::debug("Right button released");
+            if (SIDE_LEFT_FLAG == PRESSED)
+            {
+                logger::debug("Side left button pressed");
 
-            if (Mouse.isPressed(MOUSE_RIGHT))
-                Mouse.release(MOUSE_RIGHT);
+                led::changeAnimation();
+            }
+            else if (SIDE_LEFT_FLAG == RELEASED)
+            {
+                logger::debug("Side left button released");
+            }
+
+            LAST_SIDE_LEFT_FLAG = SIDE_LEFT_FLAG;
         }
 
-        if (MIDDLE_FLAG_PRESSED)
+        if (SIDE_RIGHT_FLAG != LAST_SIDE_RIGHT_FLAG)
         {
-            MIDDLE_FLAG_PRESSED = false;
-            logger::debug("Middle button pressed");
+            if (SIDE_RIGHT_FLAG == PRESSED)
+            {
+                logger::debug("Side right button pressed");
 
-            if (!Mouse.isPressed(MOUSE_MIDDLE))
-                Mouse.press(MOUSE_MIDDLE);
-        }
+                sensor::changeCpi();
+            }
+            else if (SIDE_RIGHT_FLAG == RELEASED)
+            {
+                logger::debug("Side right button released");
+            }
 
-        if (MIDDLE_FLAG_RELEASED)
-        {
-            MIDDLE_FLAG_RELEASED = false;
-            logger::debug("Middle button released");
-
-            if (Mouse.isPressed(MOUSE_MIDDLE))
-                Mouse.release(MOUSE_MIDDLE);
-        }
-
-        if (SIDE_LEFT_FLAG_PRESSED)
-        {
-            SIDE_LEFT_FLAG_PRESSED = false;
-            logger::debug("Side left button pressed");
-        }
-
-        if (SIDE_LEFT_FLAG_RELEASED)
-        {
-            SIDE_LEFT_FLAG_RELEASED = false;
-            logger::debug("Side left button released");
-
-            led::changeAnimation();
-        }
-
-        if (SIDE_RIGHT_FLAG_PRESSED)
-        {
-            SIDE_RIGHT_FLAG_PRESSED = false;
-            logger::debug("Side right button pressed");
-        }
-
-        if (SIDE_RIGHT_FLAG_RELEASED)
-        {
-            SIDE_RIGHT_FLAG_RELEASED = false;
-            logger::debug("Side right button released");
-
-            sensor::changeCpi();
+            LAST_SIDE_RIGHT_FLAG = SIDE_RIGHT_FLAG;
         }
     }
 }

@@ -9,7 +9,9 @@ As a bonus, there is also the firmware and desktop software in order to see what
 
 ### Mouse
 
-![Mouse](./docs/mouse.jpeg "Mouse")
+![Mouse](./docs/mouse-green.jpeg "Mouse Green Light")
+![Mouse](./docs/mouse-purple.jpeg "Mouse Purple Light")
+![Mouse](./docs/mouse.jpeg "Mouse's Insides")
 
 ### PCB Design
 
